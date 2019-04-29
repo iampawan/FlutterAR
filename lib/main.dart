@@ -1,5 +1,5 @@
+import 'package:arkit_plugin/arkit_plugin.dart';
 import 'package:flutter/material.dart';
-import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 
 void main() => runApp(MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter AR'),
+      home: MyHomePage(title: 'Flutter ARKit'),
     );
   }
 }
@@ -26,77 +26,84 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  ArCoreController arCoreController;
+  ARKitController _arKitController;
 
-  _onArCoreViewCreated(ArCoreController _arcoreController) {
-    arCoreController = _arcoreController;
-    _addSphere(arCoreController);
-    _addCube(arCoreController);
-    _addCyclinder(arCoreController);
+  _onARKitViewCreated(ARKitController controller) {
+    _arKitController = controller;
+
+    _addSphere(_arKitController);
+    _addText(_arKitController);
+    _addPlane(_arKitController);
   }
 
-  _addSphere(ArCoreController _arcoreController) {
-    final material = ArCoreMaterial(color: Colors.deepPurple);
-    final sphere = ArCoreSphere(materials: [material], radius: 0.2);
-    final node = ArCoreNode(
-      shape: sphere,
-      position: vector.Vector3(
-        0,
-        0,
-        -1,
-      ),
+  _addSphere(ARKitController controller) {
+    final material = ARKitMaterial(
+        lightingModelName: ARKitLightingModel.physicallyBased,
+        diffuse: ARKitMaterialProperty(
+          color: Colors.red,
+        ));
+
+    final sphere = ARKitSphere(
+      materials: [material],
+      radius: 0.2,
     );
 
-    _arcoreController.add(node);
+    final node =
+        ARKitNode(geometry: sphere, position: vector.Vector3(0, -1.0, -1.5));
+
+    controller.add(node);
   }
 
-  _addCyclinder(ArCoreController _arcoreController) {
-    final material = ArCoreMaterial(color: Colors.green, reflectance: 1);
-    final cylinder =
-        ArCoreCylinder(materials: [material], radius: 0.4, height: 0.3);
-    final node = ArCoreNode(
-      shape: cylinder,
-      position: vector.Vector3(
-        0,
-        -2.5,
-        -3.0,
-      ),
-    );
+  _addText(ARKitController controller) {
+    final material = ARKitMaterial(
+        diffuse: ARKitMaterialProperty(
+      color: Colors.blue,
+    ));
+    final text =
+        ARKitText(text: "Flutter", extrusionDepth: 1, materials: [material]);
 
-    _arcoreController.add(node);
+    final node = ARKitNode(
+        geometry: text,
+        position: vector.Vector3(-1.0, -2.0, -1.5),
+        scale: vector.Vector3(0.05, 0.05, 0.05));
+
+    controller.add(node);
   }
 
-  _addCube(ArCoreController _arcoreController) {
-    final material = ArCoreMaterial(color: Colors.pink, metallic: 1);
-    final cube =
-        ArCoreCube(materials: [material], size: vector.Vector3(1, 1, 1));
-    final node = ArCoreNode(
-      shape: cube,
-      position: vector.Vector3(
-        -0.5,
-        -0.5,
-        -3,
-      ),
+  _addPlane(ARKitController controller) {
+    final material = ARKitMaterial(
+        transparency: 0.5,
+        diffuse: ARKitMaterialProperty(
+          color: Colors.white,
+        ));
+
+    final plane = ARKitPlane(
+      materials: [material],
+      width: 1,
+      height: 1,
     );
 
-    _arcoreController.add(node);
+    final node =
+        ARKitNode(geometry: plane, position: vector.Vector3(0, -1.0, -1.5));
+
+    controller.add(node);
   }
 
   @override
   void dispose() {
-    arCoreController.dispose();
+    _arKitController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: ArCoreView(
-        onArCoreViewCreated: _onArCoreViewCreated,
-      ),
-    );
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: ARKitSceneView(
+          onARKitViewCreated: _onARKitViewCreated,
+          showStatistics: true,
+        ));
   }
 }
